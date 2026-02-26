@@ -18,6 +18,7 @@ import org.lwjglb.engine.Engine;
 import org.lwjglb.engine.IAppLogic;
 import org.lwjglb.engine.IGuiInstance;
 import org.lwjglb.engine.MouseInput;
+import org.lwjglb.engine.Physics;
 import org.lwjglb.engine.Window;
 import org.lwjglb.engine.graph.Model;
 import org.lwjglb.engine.graph.Render;
@@ -32,6 +33,7 @@ import org.lwjglb.engine.scene.lights.SpotLight;
 import imgui.ImGui;
 import imgui.ImGuiIO;
 import imgui.flag.ImGuiCond;
+import jinngine.math.Vector3;
 
 
 
@@ -39,7 +41,8 @@ public class Main implements IAppLogic, IGuiInstance {
 
     private LightControls lightControls;
     private Entity cubeEntity;
-    private Entity rbEntity;
+    private Entity platformEntity;
+    private Vector3 PhysicsCubePos;
     private Vector4f displInc = new Vector4f();
     private float rotation;
     private static final float MOUSE_SENSITIVITY = 0.1f;
@@ -79,23 +82,31 @@ public class Main implements IAppLogic, IGuiInstance {
 
     @Override
     public void init(Window window, Scene scene, Render render) {
+
+        Physics.NewScene();
+
         glfwSetInputMode(window.getWindowHandle(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-        //i need to for loop through models, rough idea is to put all models needed for a map into one folder, then parse through the folder while adding each model and texture then somehow manage to put the whole list of models inside that one folder into all their places
-        //defines, loads and creates model specified (for loop through all files soon)
         Model cubeModel = ModelLoader.loadModel("cube-model", "resources/models/cube/cube.obj", scene.getTextureCache()); scene.addModel(cubeModel);
-        Model rbModel = ModelLoader.loadModel("rb-model", "resources/models/room/room.obj", scene.getTextureCache()); scene.addModel(rbModel);
+        Model platformModel = ModelLoader.loadModel("platform-model", "resources/models/platform/platform.obj", scene.getTextureCache()); scene.addModel(platformModel);
+        //Model rbModel = ModelLoader.loadModel("rb-model", "resources/models/room/room.obj", scene.getTextureCache()); scene.addModel(rbModel);
 
         cubeEntity = new Entity("cube-entity", cubeModel.getId());
         cubeEntity.setPosition(0, 0f, -2);
         cubeEntity.updateModelMatrix(); //move cube
-        scene.addEntity(cubeEntity);    
+        scene.addEntity(cubeEntity);
+
+        platformEntity = new Entity("platform-model", platformModel.getId());
+        platformEntity.setPosition(0, -10f, -2);
+        platformEntity.updateModelMatrix(); //move cube
+        scene.addEntity(platformEntity);    
+
         //FUNCTION POSITIONS MATTER BRUH that mght be the other issue and i dont even know how to begin with fixing sum like that
         //if ts dont have colour still its probably because inside the mtl file we are definind the Ka, Kd and Ks values as an image and value and in the tutorial they use set values
         
-        rbEntity = new Entity("rb-model", rbModel.getId());
-        rbEntity.setPosition(0, -1f, -2);
-        scene.addEntity(rbEntity);
+        //rbEntity = new Entity("rb-model", rbModel.getId());
+        //rbEntity.setPosition(0, -1f, -2);
+        //scene.addEntity(rbEntity);
 
 
         SceneLights sceneLights = new SceneLights();
@@ -132,18 +143,23 @@ public class Main implements IAppLogic, IGuiInstance {
         } else if (window.isKeyPressed(GLFW_KEY_LEFT_SHIFT)) {
             camera.CamDown(move);
         }
+        //new function to determine if I'm actually scrolling
+
+        //clean up keybinds
 
         MouseInput mouseInput = window.getMouseInput();
-        //if (mouseInput.isLeftButtonPressed()) {
-            Vector2f displVec = mouseInput.getDisplVec();
-            camera.addRotation((float) Math.toRadians(displVec.x * MOUSE_SENSITIVITY), (float) Math.toRadians(displVec.y * MOUSE_SENSITIVITY));
-            //System.out.println(displVec.x + displVec.y);
-        //}
+        //System.out.println(mouseInput.getCurrentScroll());
+        //Vector2f scrollVec = mouseInput.getCurrentScroll();
+        Vector2f displVec = mouseInput.getDisplVec();
+        camera.addRotation((float) Math.toRadians(displVec.x * MOUSE_SENSITIVITY), (float) Math.toRadians(displVec.y * MOUSE_SENSITIVITY));
     }
 
     @Override
     public void update(Window window, Scene scene, long diffTimeMillis) {
-        //I HAVE NUTTHHINGGGGGGG :((((
+        Physics.tickScene();
+        PhysicsCubePos = Physics.cube.getPosition();
+        cubeEntity.setPosition((float) PhysicsCubePos.x, (float) PhysicsCubePos.y,(float) PhysicsCubePos.z);
+        cubeEntity.updateModelMatrix();
     }
 
     public void input(Window window, Scene scene, long diffTimeMillis) {

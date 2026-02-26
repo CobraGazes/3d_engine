@@ -8,6 +8,7 @@ import org.lwjglb.engine.graph.Model;
 import org.lwjglb.engine.graph.TextureCache;
 import org.lwjglb.engine.scene.lights.SceneLights;
 
+
 public class Scene {
 
     private IGuiInstance guiInstance;

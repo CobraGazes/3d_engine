@@ -148,6 +148,14 @@ public class Window {
         return glfwGetKey(windowHandle, keyCode) == GLFW_PRESS;
     }
 
+    public boolean isScrolled(){
+        return true;
+    }
+
+    public boolean scrollCallBack(double xoffset, double yoffset){
+            return true;
+    }
+
     public void keyCallBack(int key, int action) {
         if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE) {
             glfwSetWindowShouldClose(windowHandle, true); // We will detect this in the rendering loop

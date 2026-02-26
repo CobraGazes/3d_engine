@@ -7,11 +7,13 @@ import static org.lwjgl.glfw.GLFW.GLFW_PRESS;
 import static org.lwjgl.glfw.GLFW.glfwSetCursorEnterCallback;
 import static org.lwjgl.glfw.GLFW.glfwSetCursorPosCallback;
 import static org.lwjgl.glfw.GLFW.glfwSetMouseButtonCallback;
+import static org.lwjgl.glfw.GLFW.glfwSetScrollCallback;
 
 public class MouseInput {
 
     private Vector2f currentPos;
     private Vector2f displVec;
+    private Vector2f scrollVec;
     private boolean inWindow;
     private boolean leftButtonPressed;
     private Vector2f previousPos;
@@ -21,6 +23,7 @@ public class MouseInput {
         previousPos = new Vector2f(-1, -1);
         currentPos = new Vector2f();
         displVec = new Vector2f();
+        scrollVec = new Vector2f();
         leftButtonPressed = false;
         rightButtonPressed = false;
         inWindow = false;
@@ -34,10 +37,19 @@ public class MouseInput {
             leftButtonPressed = button == GLFW_MOUSE_BUTTON_1 && action == GLFW_PRESS;
             rightButtonPressed = button == GLFW_MOUSE_BUTTON_2 && action == GLFW_PRESS;
         });
+        glfwSetScrollCallback(windowHandle, (handle, xpos, ypos) -> {
+            scrollVec.x = (float) xpos;
+            scrollVec.y = (float) ypos;
+        });
+
     }
 
     public Vector2f getCurrentPos() {
         return currentPos;
+    }
+
+    public Vector2f getCurrentScroll(){
+        return scrollVec;
     }
 
     public Vector2f getDisplVec() {

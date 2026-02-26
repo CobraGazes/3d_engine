@@ -4,12 +4,15 @@ import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
+import jinngine.math.Vector3;
+
 public class Entity {
 
     private final String id;
     private final String modelId;
     private Matrix4f Modelmatrix;
     private Vector3f position;
+    private Vector3 DoublePosition;
     private Quaternionf rotation;
     private float scale;
     

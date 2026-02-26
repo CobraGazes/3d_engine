@@ -20,6 +20,11 @@
             <version>${imgui-java.version}</version>
         </dependency>
         <dependency>
+            <groupId>jinngine</groupId>
+            <artifactId>jinngine</artifactId>
+            <version>1</version>
+        </dependency>
+        <dependency>
             <groupId>org.lwjgl</groupId>
             <artifactId>lwjgl-assimp</artifactId>
             <version>${lwjgl.version}</version>
