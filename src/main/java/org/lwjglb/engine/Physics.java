@@ -1,34 +1,48 @@
 package org.lwjglb.engine;
 
 import jinngine.geometry.Box;
+import jinngine.math.Vector3;
 import jinngine.physics.Body;
 import jinngine.physics.DefaultScene;
 import jinngine.physics.Scene;
 import jinngine.physics.force.GravityForce;
+import jinngine.physics.force.ImpulseForce;
+import java.util.HashMap;
+import java.util.Map;
+
 
 
 public class Physics {
 
+    private static Map<String, Body> cubes = new HashMap<>();
     static Scene PhysicsScene = new DefaultScene();
-    public static Body cube = new Body("Box", new Box(1, 1, 1));
-    static Body floor = new Body("Floor", new Box(1500,1,1500));
 
     public static void NewScene(){
         PhysicsScene.setTimestep(0.1);
+    }
 
-        floor.setPosition(0, -10, 0);
-        floor.setFixed(true);
-
-        cube.setPosition(0, 0, -2);
-
-        PhysicsScene.addBody(floor);
+    public static Body newCube(String name, double sizeX, double sizeY, double sizeZ, double positionX, double positionY, double positionZ, boolean isFixed){
+        Body cube = new Body(name, new Box(sizeX, sizeY, sizeZ));
+        cube.setPosition(positionX, positionY, positionZ);
+        if (isFixed) {
+            cube.setFixed(true);
+        } else {
+            PhysicsScene.addForce(new GravityForce(cube));
+        }
         PhysicsScene.addBody(cube);
+        cubes.put(name, cube);
+        return cube;
+    }
 
-        PhysicsScene.addForce(new GravityForce(cube));
+    public static Body getCube(String name){
+        return cubes.get(name);
+    }
+
+    public static void applyImpulseForce(Body body, Vector3 point, Vector3 direction, double magnitude){
+        PhysicsScene.addForce(new ImpulseForce(body, point, direction, magnitude));
     }
 
     public static void tickScene(){
         PhysicsScene.tick();
-        System.out.println(cube.getPosition());
     }
 }

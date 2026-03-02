@@ -1,5 +1,6 @@
 package org.lwjglb.engine.scene;
 
+import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
@@ -35,7 +36,18 @@ public class Entity {
     public void setRotation(float x, float y, float z, float angle){
         this.rotation.fromAxisAngleRad(x, y, z, angle);
     }
-    
+
+    public void setRotationFromMatrix3(jinngine.math.Matrix3 m) {
+
+        Matrix3f jomlMat = new Matrix3f(
+                (float)m.a11, (float)m.a12, (float)m.a13,
+                (float)m.a21, (float)m.a22, (float)m.a23,
+                (float)m.a31, (float)m.a32, (float)m.a33
+        );
+
+        this.rotation.setFromNormalized(jomlMat);
+    }
+
     public void setScale(float scale) {
         this.scale = scale;
     }
