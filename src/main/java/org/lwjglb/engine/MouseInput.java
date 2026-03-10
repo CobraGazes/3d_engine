@@ -37,19 +37,10 @@ public class MouseInput {
             leftButtonPressed = button == GLFW_MOUSE_BUTTON_1 && action == GLFW_PRESS;
             rightButtonPressed = button == GLFW_MOUSE_BUTTON_2 && action == GLFW_PRESS;
         });
-        glfwSetScrollCallback(windowHandle, (handle, xpos, ypos) -> {
-            scrollVec.x = (float) xpos;
-            scrollVec.y = (float) ypos;
-        });
-
     }
 
     public Vector2f getCurrentPos() {
         return currentPos;
-    }
-
-    public Vector2f getCurrentScroll(){
-        return scrollVec;
     }
 
     public Vector2f getDisplVec() {

@@ -84,7 +84,7 @@ public class Window {
             height = vidMode.height();
         }
 
-        windowHandle = glfwCreateWindow(width, height, title, NULL, NULL);
+        windowHandle = glfwCreateWindow(width, height, title, glfwGetPrimaryMonitor(), NULL);
         if (windowHandle == NULL) {
             throw new RuntimeException("Failed to create the GLFW window");
         }
@@ -148,13 +148,6 @@ public class Window {
         return glfwGetKey(windowHandle, keyCode) == GLFW_PRESS;
     }
 
-    public boolean isScrolled(){
-        return true;
-    }
-
-    public boolean scrollCallBack(double xoffset, double yoffset){
-            return true;
-    }
 
     public void keyCallBack(int key, int action) {
         if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE) {

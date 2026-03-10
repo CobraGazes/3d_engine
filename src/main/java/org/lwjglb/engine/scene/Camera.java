@@ -2,15 +2,24 @@ package org.lwjglb.engine.scene;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
-    
+import org.lwjgl.glfw.GLFW;
+import org.lwjglb.engine.MouseInput;
+import org.lwjglb.engine.Window;
+
+import javax.swing.text.Position;
+
 public class Camera {
 
-    private Vector3f direction;
-    private Vector3f position;
-    private Vector3f right;
-    private Vector2f rotation;
-    private Vector3f up;
-    private Matrix4f viewMatrix;
+    private static Vector3f direction;
+    private static Vector3f position;
+    private static Vector3f right;
+    private static Vector2f rotation;
+    private static Vector3f up;
+    private static Matrix4f viewMatrix;
+    private static Vector2f NewMousepos;
+    private static double oldMouseX = 0, oldMouseY = 0, newMouseX, newMouseY;
+    private static float horizontalAngle = 0, verticalAngle = 0;
+    private static float distance = 4.0f, angle = 0.0f;
 
     public Camera() {
         direction = new Vector3f();
@@ -65,25 +74,57 @@ public class Camera {
         recalculate();
     }
 
-    private void recalculate() {
+    private static void recalculate() {
         viewMatrix.identity()
             .rotateX(rotation.x)
             .rotateY(rotation.y)
             .translate(-position.x, -position.y, -position.z);
     }
 
-    public void addRotation(float x, float y) {
+    public static void addRotation(float x, float y) {
         rotation.add(x, y);
         recalculate();
     }
 
-    public void setRotation(float x, float y) {
+    public static void setRotation(float x, float y) {
         rotation.set(x, y);
         recalculate();
     }
 
-    public void setPosition(float x, float y, float z) {
+    public static void setPosition(float x, float y, float z) {
         position.set(x, y, z);
         recalculate();
+    }
+
+    public static void update(Window window, Entity entity, float MOUSE_SENSITIVITY){
+        MouseInput mouseInput = window.getMouseInput();
+        NewMousepos = mouseInput.getCurrentPos();
+        newMouseX = NewMousepos.x;
+        newMouseY = NewMousepos.y;
+
+        float dx = (float) ((float) newMouseX - oldMouseX);
+        float dy = (float) ((float) newMouseY - oldMouseY);
+
+        if (mouseInput.isRightButtonPressed()) {
+            verticalAngle -= dy * MOUSE_SENSITIVITY;
+            horizontalAngle += dx * MOUSE_SENSITIVITY;
+        }
+
+        float horDist = (float) (distance * Math.cos(Math.toRadians(verticalAngle)));
+        float virDist = (float) (distance * Math.sin(Math.toRadians(verticalAngle)));
+
+        float x = (float) (horDist * Math.sin(Math.toRadians(-horizontalAngle)));
+        float z = (float) (horDist * Math.cos(Math.toRadians(-horizontalAngle)));
+
+        // Set camera position
+        setPosition(entity.returnPosition().x + x, entity.returnPosition().y - virDist, entity.returnPosition().z + z);
+
+        // Set camera rotation to look at the entity
+        float pitch = (float) Math.toRadians(-verticalAngle);
+        float yaw = (float) Math.toRadians(horizontalAngle);
+        setRotation(pitch, yaw);
+
+        oldMouseX = newMouseX;
+        oldMouseY = newMouseY;
     }
 }

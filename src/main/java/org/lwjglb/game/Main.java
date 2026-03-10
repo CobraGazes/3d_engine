@@ -34,12 +34,18 @@ import static org.lwjgl.glfw.GLFW.*;
 public class Main implements IAppLogic, IGuiInstance {
 
     private Body cube1;
-    private Body platform;
-    private LightControls lightControls;
+    private Body sphere;
+
     private Entity cubeEntity;
     private Entity platformEntity;
+    private Entity sphereEntity;
+
     private Vector3 PhysicsCubePos;
     private Matrix3 PhysicsCubeRotation;
+    private Vector3 PhysicsSpherePos = new Vector3();
+    private Matrix3 PhysicsSphereRotation = new Matrix3();
+
+    private LightControls lightControls;
     private Vector4f displInc = new Vector4f();
     private float rotation;
     private static final float MOUSE_SENSITIVITY = 0.1f;
@@ -47,7 +53,7 @@ public class Main implements IAppLogic, IGuiInstance {
 
     public static void main(String[] args) {
         Main main = new Main();
-        Engine gameEng = new Engine("This isnt gonna work", new Window.WindowOptions(), main);
+        Engine gameEng = new Engine("3d Engine Test", new Window.WindowOptions(), main);
         gameEng.run();
     }
 
@@ -80,13 +86,16 @@ public class Main implements IAppLogic, IGuiInstance {
     @Override
     public void init(Window window, Scene scene, Render render) {
 
+        Camera camera = scene.getCamera();
+        camera.setPosition(0,10,15);
+        camera.setRotation(45, 0);
         Physics.NewScene();
 
         glfwSetInputMode(window.getWindowHandle(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
         Model cubeModel = ModelLoader.loadModel("cube-model", "resources/models/cube/cube.obj", scene.getTextureCache()); scene.addModel(cubeModel);
         Model platformModel = ModelLoader.loadModel("platform-model", "resources/models/platform/platform.obj", scene.getTextureCache()); scene.addModel(platformModel);
-        //Model rbModel = ModelLoader.loadModel("rb-model", "resources/models/room/room.obj", scene.getTextureCache()); scene.addModel(rbModel);
+        Model sphereModel = ModelLoader.loadModel("sphere-model", "resources/models/sphere/sphere.obj", scene.getTextureCache()); scene.addModel(sphereModel);
 
         cubeEntity = new Entity("cube-entity", cubeModel.getId());
         cubeEntity.setPosition(0, 0f, -2);
@@ -98,9 +107,13 @@ public class Main implements IAppLogic, IGuiInstance {
         platformEntity.setPosition(0, -10f, -2);
         platformEntity.updateModelMatrix(); //move cube
         scene.addEntity(platformEntity);    
-        platform = Physics.newCube("Floor", 1500, 1, 1500, 0, -10, 0, true);
-        //FUNCTION POSITIONS MATTER BRUH that mght be the other issue and i dont even know how to begin with fixing sum like that
-        //if ts dont have colour still its probably because inside the mtl file we are definind the Ka, Kd and Ks values as an image and value and in the tutorial they use set values
+        Body platform = Physics.newCube("Floor", 30, 1, 30, 0, -10, 0, true);
+
+        sphereEntity = new Entity("sphere-model", sphereModel.getId());
+        sphereEntity.setPosition(0, 0f, -2);
+        sphereEntity.updateModelMatrix();
+        scene.addEntity(sphereEntity);
+        sphere = Physics.newSphere("sphere", 1, 0, 0, -2, false);
 
 
         SceneLights sceneLights = new SceneLights();
@@ -127,9 +140,9 @@ public class Main implements IAppLogic, IGuiInstance {
         } else if (window.isKeyPressed(GLFW_KEY_S)) {
             camera.CamBackwards(move);
         }
-        if (window.isKeyPressed(GLFW_KEY_A )|| window.isKeyPressed(GLFW_KEY_LEFT)) {
+        if (window.isKeyPressed(GLFW_KEY_A )) {
             camera.CamLeft(move);
-        } else if (window.isKeyPressed(GLFW_KEY_D) || window.isKeyPressed(GLFW_KEY_RIGHT)) {
+        } else if (window.isKeyPressed(GLFW_KEY_D)) {
             camera.CamRight(move);
         }
         if (window.isKeyPressed(GLFW_KEY_SPACE)) {
@@ -138,28 +151,49 @@ public class Main implements IAppLogic, IGuiInstance {
             camera.CamDown(move);
         }
         if (window.isKeyPressed(GLFW_KEY_UP)) {
-            cube1.setVelocity(new Vector3(0,10,0));
-            //Physics.applyImpulseForce(cube1, new Vector3(0, 3, 0), new Vector3(0, 4, 0),1);
+            //cube1.setVelocity(new Vector3(0,10,0));
+            Physics.applyImpulseForce(sphere, new Vector3(0,0,0), new Vector3(0, 0, -2),1);
+        }
+        if (window.isKeyPressed(GLFW_KEY_DOWN)) {
+            //cube1.setVelocity(new Vector3(0,10,0));
+            Physics.applyImpulseForce(sphere, new Vector3(0, 0, 0), new Vector3(0, 0, 2),1);
+        }
+        if (window.isKeyPressed(GLFW_KEY_LEFT)) {
+            //cube1.setVelocity(new Vector3(0,10,0));
+            Physics.applyImpulseForce(sphere, new Vector3(0, 0, 0), new Vector3(-2, 0, 0),1);
+        }
+        if (window.isKeyPressed(GLFW_KEY_RIGHT)) {
+            //cube1.setVelocity(new Vector3(0,10,0));
+            Physics.applyImpulseForce(sphere, new Vector3(0, 0, 0), new Vector3(2, 0, 0),1);
         }
         //new function to determine if I'm actually scrolling
 
         //clean up keybinds
 
-        MouseInput mouseInput = window.getMouseInput();
-        //System.out.println(mouseInput.getCurrentScroll());
-        //Vector2f scrollVec = mouseInput.getCurrentScroll();
-        Vector2f displVec = mouseInput.getDisplVec();
-        camera.addRotation((float) Math.toRadians(displVec.x * MOUSE_SENSITIVITY), (float) Math.toRadians(displVec.y * MOUSE_SENSITIVITY));
+//        MouseInput mouseInput = window.getMouseInput();
+//        Vector2f displVec = mouseInput.getDisplVec();
+//        camera.addRotation((float) Math.toRadians(displVec.x * MOUSE_SENSITIVITY), (float) Math.toRadians(displVec.y * MOUSE_SENSITIVITY));
     }
 
     @Override
     public void update(Window window, Scene scene, long diffTimeMillis) {
         Physics.tickScene();
-        PhysicsCubePos = cube1.getPosition();
-        PhysicsCubeRotation = cube1.getOrientation();
-        cubeEntity.setPosition((float) PhysicsCubePos.x, (float) PhysicsCubePos.y,(float) PhysicsCubePos.z);
-        cubeEntity.setRotationFromMatrix3(PhysicsCubeRotation);
-        cubeEntity.updateModelMatrix();
+
+        PhysicsSpherePos = sphere.getPosition();
+        PhysicsSphereRotation = sphere.getOrientation();
+
+        float XSpherePos = (float) PhysicsSpherePos.x;
+        float YSpherePos = (float) PhysicsSpherePos.y;
+        float ZSpherePos = (float) PhysicsSpherePos.z;
+
+
+        sphereEntity.setPosition(XSpherePos, YSpherePos,ZSpherePos);
+        sphereEntity.setRotationFromMatrix3(PhysicsSphereRotation);
+        sphereEntity.updateModelMatrix();
+
+        Camera.update(window, cubeEntity, MOUSE_SENSITIVITY);
+
+        //Camera.setPosition(XSpherePos, YSpherePos+ 4,ZSpherePos + 3);
     }
 
     public void input(Window window, Scene scene, long diffTimeMillis) {
