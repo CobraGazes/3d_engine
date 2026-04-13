@@ -38,13 +38,11 @@ public class Entity {
     }
 
     public void setRotationFromMatrix3(jinngine.math.Matrix3 m) {
-
         Matrix3f jomlMat = new Matrix3f(
                 (float)m.a11, (float)m.a12, (float)m.a13,
                 (float)m.a21, (float)m.a22, (float)m.a23,
                 (float)m.a31, (float)m.a32, (float)m.a33
         );
-
         this.rotation.setFromNormalized(jomlMat);
     }
 

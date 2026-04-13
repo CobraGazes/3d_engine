@@ -1,6 +1,7 @@
 package org.lwjglb.engine;
 
 import jinngine.geometry.Box;
+import jinngine.geometry.Material;
 import jinngine.geometry.Sphere;
 import jinngine.math.Vector3;
 import jinngine.physics.Body;
@@ -24,6 +25,9 @@ public class Physics {
         PhysicsScene.setTimestep(0.1);
     }
 
+    public static void setFrictionCoefficient(Body body, double frictionCoefficient){
+//        body.setFrictionCoefficient();
+    }
     public static Body newCube(String name, double sizeX, double sizeY, double sizeZ, double positionX, double positionY, double positionZ, boolean isFixed){
         Body cube = new Body(name, new Box(sizeX, sizeY, sizeZ));
         cube.setPosition(positionX, positionY, positionZ);

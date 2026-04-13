@@ -1,6 +1,8 @@
 package org.lwjglb.game;
 
 import jinngine.math.Matrix3;
+import org.joml.Matrix3f;
+import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
@@ -48,8 +50,11 @@ public class Main implements IAppLogic, IGuiInstance {
     private LightControls lightControls;
     private Vector4f displInc = new Vector4f();
     private float rotation;
-    private static final float MOUSE_SENSITIVITY = 0.1f;
+    private static final float MOUSE_SENSITIVITY = 0.2f;
     private static final float MOVEMENT_SPEED = 0.005f;
+    private static final float forceMag = 2.0f;
+    Matrix3 jomlMat = new Matrix3(0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f);
+
 
     public static void main(String[] args) {
         Main main = new Main();
@@ -85,10 +90,7 @@ public class Main implements IAppLogic, IGuiInstance {
 
     @Override
     public void init(Window window, Scene scene, Render render) {
-
         Camera camera = scene.getCamera();
-        camera.setPosition(0,10,15);
-        camera.setRotation(45, 0);
         Physics.NewScene();
 
         glfwSetInputMode(window.getWindowHandle(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -99,15 +101,15 @@ public class Main implements IAppLogic, IGuiInstance {
 
         cubeEntity = new Entity("cube-entity", cubeModel.getId());
         cubeEntity.setPosition(0, 0f, -2);
-        cubeEntity.updateModelMatrix(); //move cube
+        cubeEntity.updateModelMatrix();
         scene.addEntity(cubeEntity);
         cube1 = Physics.newCube("Cube", 1, 1, 1, 0, 0, -2, false);
 
         platformEntity = new Entity("platform-model", platformModel.getId());
         platformEntity.setPosition(0, -10f, -2);
-        platformEntity.updateModelMatrix(); //move cube
+        platformEntity.updateModelMatrix();
         scene.addEntity(platformEntity);    
-        Body platform = Physics.newCube("Floor", 30, 1, 30, 0, -10, 0, true);
+        Body platform = Physics.newCube("Floor", 30000, 1, 30000, 0, -10, 0, true);
 
         sphereEntity = new Entity("sphere-model", sphereModel.getId());
         sphereEntity.setPosition(0, 0f, -2);
@@ -124,8 +126,8 @@ public class Main implements IAppLogic, IGuiInstance {
         Vector3f coneDir = new Vector3f(0, 0, -1);
         sceneLights.getSpotLights().add(new SpotLight(new PointLight(new Vector3f(1, 1, 1), new Vector3f(0, 0, -1.4f), 0.0f), coneDir, 140.0f));
 
-        lightControls = new LightControls(scene);
-        scene.setGuiInstance(lightControls);
+        //lightControls = new LightControls(scene);
+        //scene.setGuiInstance(lightControls);
     }
 
     @Override
@@ -135,44 +137,37 @@ public class Main implements IAppLogic, IGuiInstance {
         }
         float move = diffTimeMillis * MOVEMENT_SPEED;
         Camera camera = scene.getCamera();
+
+        // calculate forward and right vectors relative to camera orientation
+        Vector3f forward = new Vector3f();
+        camera.getViewMatrix().positiveZ(forward).negate();
+        forward.y = 0; // keep movement on the horizontal plane
+        if (forward.length() > 0) {
+            forward.normalize();
+        }
+
+        Vector3f right = new Vector3f();
+        camera.getViewMatrix().positiveX(right);
+        right.y = 0; // keep movement on the horizontal plane
+        if (right.length() > 0) {
+            right.normalize();
+        }
+
         if (window.isKeyPressed(GLFW_KEY_W)) {
-            camera.CamForward(move);
+            Physics.applyImpulseForce(sphere, new Vector3(0, 0, 0), new Vector3(forward.x * forceMag, 0, forward.z * forceMag), 1);
         } else if (window.isKeyPressed(GLFW_KEY_S)) {
-            camera.CamBackwards(move);
+            Physics.applyImpulseForce(sphere, new Vector3(0, 0, 0), new Vector3(-forward.x * forceMag, 0, -forward.z * forceMag), 1);
         }
-        if (window.isKeyPressed(GLFW_KEY_A )) {
-            camera.CamLeft(move);
+        if (window.isKeyPressed(GLFW_KEY_A)) {
+            Physics.applyImpulseForce(sphere, new Vector3(0, 0, 0), new Vector3(-right.x * forceMag, 0, -right.z * forceMag), 1);
         } else if (window.isKeyPressed(GLFW_KEY_D)) {
-            camera.CamRight(move);
+            Physics.applyImpulseForce(sphere, new Vector3(0, 0, 0), new Vector3(right.x * forceMag, 0, right.z * forceMag), 1);
         }
-        if (window.isKeyPressed(GLFW_KEY_SPACE)) {
-            camera.CamUp(move);
-        } else if (window.isKeyPressed(GLFW_KEY_LEFT_SHIFT)) {
-            camera.CamDown(move);
+        if (window.isKeyPressed(GLFW_KEY_R)) {
+            sphere.setPosition(0,-2,0);
+            sphere.setVelocity(0,0,0);
+            sphere.setOrientation(jomlMat);
         }
-        if (window.isKeyPressed(GLFW_KEY_UP)) {
-            //cube1.setVelocity(new Vector3(0,10,0));
-            Physics.applyImpulseForce(sphere, new Vector3(0,0,0), new Vector3(0, 0, -2),1);
-        }
-        if (window.isKeyPressed(GLFW_KEY_DOWN)) {
-            //cube1.setVelocity(new Vector3(0,10,0));
-            Physics.applyImpulseForce(sphere, new Vector3(0, 0, 0), new Vector3(0, 0, 2),1);
-        }
-        if (window.isKeyPressed(GLFW_KEY_LEFT)) {
-            //cube1.setVelocity(new Vector3(0,10,0));
-            Physics.applyImpulseForce(sphere, new Vector3(0, 0, 0), new Vector3(-2, 0, 0),1);
-        }
-        if (window.isKeyPressed(GLFW_KEY_RIGHT)) {
-            //cube1.setVelocity(new Vector3(0,10,0));
-            Physics.applyImpulseForce(sphere, new Vector3(0, 0, 0), new Vector3(2, 0, 0),1);
-        }
-        //new function to determine if I'm actually scrolling
-
-        //clean up keybinds
-
-//        MouseInput mouseInput = window.getMouseInput();
-//        Vector2f displVec = mouseInput.getDisplVec();
-//        camera.addRotation((float) Math.toRadians(displVec.x * MOUSE_SENSITIVITY), (float) Math.toRadians(displVec.y * MOUSE_SENSITIVITY));
     }
 
     @Override
@@ -191,9 +186,7 @@ public class Main implements IAppLogic, IGuiInstance {
         sphereEntity.setRotationFromMatrix3(PhysicsSphereRotation);
         sphereEntity.updateModelMatrix();
 
-        Camera.update(window, cubeEntity, MOUSE_SENSITIVITY);
-
-        //Camera.setPosition(XSpherePos, YSpherePos+ 4,ZSpherePos + 3);
+        Camera.update(window, sphereEntity, MOUSE_SENSITIVITY);
     }
 
     public void input(Window window, Scene scene, long diffTimeMillis) {

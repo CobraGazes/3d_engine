@@ -20,6 +20,8 @@ public class Camera {
     private static double oldMouseX = 0, oldMouseY = 0, newMouseX, newMouseY;
     private static float horizontalAngle = 0, verticalAngle = 0;
     private static float distance = 4.0f, angle = 0.0f;
+    private static float pitch;
+    private static float yaw;
 
     public Camera() {
         direction = new Vector3f();
@@ -86,6 +88,9 @@ public class Camera {
         recalculate();
     }
 
+    public static float returnYaw(){
+        return yaw;
+    }
     public static void setRotation(float x, float y) {
         rotation.set(x, y);
         recalculate();
@@ -105,10 +110,8 @@ public class Camera {
         float dx = (float) ((float) newMouseX - oldMouseX);
         float dy = (float) ((float) newMouseY - oldMouseY);
 
-        if (mouseInput.isRightButtonPressed()) {
-            verticalAngle -= dy * MOUSE_SENSITIVITY;
-            horizontalAngle += dx * MOUSE_SENSITIVITY;
-        }
+        verticalAngle -= dy * MOUSE_SENSITIVITY;
+        horizontalAngle += dx * MOUSE_SENSITIVITY;
 
         float horDist = (float) (distance * Math.cos(Math.toRadians(verticalAngle)));
         float virDist = (float) (distance * Math.sin(Math.toRadians(verticalAngle)));
@@ -116,12 +119,12 @@ public class Camera {
         float x = (float) (horDist * Math.sin(Math.toRadians(-horizontalAngle)));
         float z = (float) (horDist * Math.cos(Math.toRadians(-horizontalAngle)));
 
-        // Set camera position
+        // set camera position
         setPosition(entity.returnPosition().x + x, entity.returnPosition().y - virDist, entity.returnPosition().z + z);
 
-        // Set camera rotation to look at the entity
-        float pitch = (float) Math.toRadians(-verticalAngle);
-        float yaw = (float) Math.toRadians(horizontalAngle);
+        // set camera rotation to look at the entity
+        pitch = (float) Math.toRadians(-verticalAngle);
+        yaw = (float) Math.toRadians(horizontalAngle);
         setRotation(pitch, yaw);
 
         oldMouseX = newMouseX;
